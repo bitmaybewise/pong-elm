@@ -1,0 +1,8 @@
+{
+  "name": "pong-elm",
+  "version": "1.0.0",
+  "author": "Hercules Lemke Merscher",
+  "devDependencies": {
+    "elm": "^0.18.0"
+  }
+}
