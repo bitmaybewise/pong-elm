@@ -15,11 +15,17 @@ score = style
   , ("margin-bottom", "1%") 
   ]
 
+playgroundWidth : Int
+playgroundWidth = 300
+
+playgroundHeight : Int
+playgroundHeight = 400
+
 playground : Attribute msg
 playground = style
   [ ("background", "black")
-  , ("width", "300px")
-  , ("height", "400px")
+  , ("width", (toString playgroundWidth) ++ "px")
+  , ("height", (toString playgroundHeight) ++ "px")
   , ("position", "relative")
   , ("overflow", "hidden")
   ]
@@ -38,14 +44,14 @@ gameOver : Attribute msg
 gameOver = style
   [ ("display", "none") ]
 
-ball : Attribute msg
-ball = style
+ball : Int -> Int -> Attribute msg
+ball left top = style
   [ ("background", "yellow")
   , ("position", "absolute")
   , ("width", "30px")
   , ("height", "30px")
-  , ("left", "135px")
-  , ("top", "100px")
+  , ("left", (toString left) ++ "px")
+  , ("top", (toString top) ++ "px")
   , ("border-radius", "15px")
   ]
 

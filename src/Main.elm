@@ -47,16 +47,8 @@ init = (initialModel, Cmd.none)
 subscriptions : Model -> Sub Msg
 subscriptions model = Sub.batch 
   [ Keyboard.downs (\n -> KeyPressed n)
-  , every (inMilliseconds 60) Tick
+  , every (inMilliseconds 16) Tick
   ]
-
--- function moveBallDirectionX(playgroundHTML, ball) {
---   var width = playgroundHTML.offsetWidth, directionX = ball.directionX;
---   var positionX = nextPosition(ball.x, ball.speed, ball.directionX);
---   if(positionX > width) { directionX = -1; }
---   if(positionX < 0) { directionX = 1; }
---   return directionX;
--- }
 
 nextPosition : Int -> Int -> Int -> Int
 nextPosition currentPos speed direction = currentPos + speed * direction
@@ -64,7 +56,32 @@ nextPosition currentPos speed direction = currentPos + speed * direction
 moveBallDirectionX : Ball -> Ball
 moveBallDirectionX ball =
   let positionX = nextPosition ball.x ball.speed ball.directionX
-  in ball
+      directionX = if positionX > Styles.playgroundWidth
+                   then -1
+                   else if positionX < 0
+                   then 1
+                   else ball.directionX
+  in { ball | directionX = directionX }
+
+moveBallDirectionY : Ball -> Ball
+moveBallDirectionY ball =
+  let positionY = nextPosition ball.y ball.speed ball.directionY
+      directionY = if positionY > Styles.playgroundHeight
+                   then -1
+                   else if positionY < 0
+                   then 1
+                   else ball.directionY
+  in { ball | directionY = directionY }
+
+moveBallPositionX : Ball -> Ball
+moveBallPositionX ball = 
+  let positionX = ball.x + ball.speed * ball.directionX
+  in { ball | x = positionX }
+
+moveBallPositionY : Ball -> Ball
+moveBallPositionY ball = 
+  let positionY = ball.y + ball.speed * ball.directionY
+  in { ball | y = positionY }
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
@@ -76,12 +93,17 @@ update msg model =
                      } 
       in (newModel, Cmd.none)
     Tick time ->
-      let newBall = moveBallDirectionX model.ball
+      let newBall = model.ball
+                  |> moveBallDirectionX
+                  >> moveBallDirectionY
+                  >> moveBallPositionX
+                  >> moveBallPositionY
           newModel = { model 
-                     | time = time
-                     , ball = newBall
+                     | ball = newBall
                      }
-      in (newModel, Cmd.none) 
+      in if model.status == Running 
+         then (newModel, Cmd.none)
+         else (model, Cmd.none) 
 
 beforeStart :  Html Msg
 beforeStart =
@@ -100,8 +122,12 @@ gameOver =
     ]
 
 info : Model -> Html Msg
-info model = 
-  beforeStart
+info model =
+  if model.status == Stopped
+  then beforeStart
+  else if model.status == GameOver
+  then gameOver
+  else div [] []
   
 view : Model -> Html Msg
 view model = 
@@ -115,7 +141,7 @@ view model =
       ]
   , div [ Styles.playground ]
       [ info model 
-      , div [ Styles.ball ] []
+      , div [ Styles.ball model.ball.x model.ball.y ] []
       , div [ Styles.racket ] []
       ]
   ]
