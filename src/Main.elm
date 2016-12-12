@@ -1,11 +1,12 @@
 module Main exposing (main)
 
 import Html exposing (..)
+import Keyboard
 import Styles
 
 type Status = Stoped | Running | GameOver
 
-type Msg = Change Status
+type Msg = KeyPressed Int
 
 type alias Ball = 
   { speed: Int
@@ -19,10 +20,11 @@ type alias Model =
   { status: Status
   , score: Int
   , ball: Ball
+  , key: Int
   }
 
-model : Model
-model = 
+initialModel : Model
+initialModel = 
   { status = Stoped
   , score = 0
   , ball = 
@@ -32,18 +34,29 @@ model =
     , directionX = -1
     , directionY = -1
     }
+  , key = 0
   }
 
+init : (Model, Cmd Msg)
+init = (initialModel, Cmd.none)
+
+subscriptions : Model -> Sub Msg
+subscriptions model = Keyboard.downs (\n -> KeyPressed n)
+
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
-    Change newStatus ->  { model | status = newStatus } 
+    KeyPressed n ->  ({ model | key = n }, Cmd.none) 
 
+view : Model -> Html Msg
 view model = 
   body [ Styles.body ] 
   [ header [] [ h1 [] [text "Pong"] ]
   , div [ Styles.score ] 
     [ text "Score: " 
-    , span [] [text "0"] 
+    , span [] [text (toString model.score)]
+    , br [] []
+    , text (toString model.key) 
     ]
   , div [ Styles.playground ]
     [ div [ Styles.messages ]
@@ -62,9 +75,10 @@ view model =
   ]
 
 main = 
-  beginnerProgram 
-  { model = model
-  , view = view
-  , update = update 
+  program 
+  { view = view
+  , update = update
+  , init = init
+  , subscriptions = subscriptions 
   }
   
