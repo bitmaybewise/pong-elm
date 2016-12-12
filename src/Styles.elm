@@ -5,7 +5,9 @@ import Html.Attributes exposing (style)
 
 body : Attribute msg
 body = style
-  [ ("font-family", "sans-serif") ]
+  [ ("font-family", "sans-serif")
+  , ("overflow-y", "hidden") 
+  ]
 
 score : Attribute msg
 score = style
