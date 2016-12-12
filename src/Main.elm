@@ -8,7 +8,14 @@ import Styles
 type Status = Stopped | Running | GameOver
 
 type Msg = KeyPressed Int
+         | KeyReleased Int
          | Tick Time
+
+keyLeft : Int
+keyLeft = 37
+
+keyRight : Int
+keyRight = 39
 
 type alias Ball = 
   { speed: Int
@@ -22,23 +29,26 @@ type alias Model =
   { status: Status
   , score: Int
   , ball: Ball
-  , key: Int
-  , time: Time
+  , racketPositionX: Int
+  , keyPressed: Int
+  }
+
+initialBall : Ball
+initialBall =
+  { speed = 5
+  , x = 135
+  , y = 100
+  , directionX = -1
+  , directionY = -1
   }
 
 initialModel : Model
 initialModel = 
   { status = Stopped
   , score = 0
-  , ball = 
-    { speed = 5
-    , x = 135
-    , y = 100
-    , directionX = -1
-    , directionY = -1
-    }
-  , key = 0
-  , time = 0
+  , ball = initialBall 
+  , racketPositionX = 110
+  , keyPressed = -1
   }
 
 init : (Model, Cmd Msg)
@@ -47,6 +57,7 @@ init = (initialModel, Cmd.none)
 subscriptions : Model -> Sub Msg
 subscriptions model = Sub.batch 
   [ Keyboard.downs (\n -> KeyPressed n)
+  , Keyboard.ups (\n -> KeyReleased n)
   , every (inMilliseconds 16) Tick
   ]
 
@@ -83,23 +94,31 @@ moveBallPositionY ball =
   let positionY = ball.y + ball.speed * ball.directionY
   in { ball | y = positionY }
 
+moveRacket : Int -> Int -> Int
+moveRacket position keyPressed =
+  if keyPressed == keyLeft
+  then position - 5
+  else if keyPressed == keyRight
+  then position + 5
+  else position
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
     KeyPressed n ->
-      let newModel = { model
-                     | status = Running
-                     , key = n
-                     } 
+      let newModel = { model | status = Running, keyPressed = n } 
       in (newModel, Cmd.none)
+    KeyReleased _ -> ({ model | keyPressed = 1 }, Cmd.none)
     Tick time ->
       let newBall = model.ball
                   |> moveBallDirectionX
                   >> moveBallDirectionY
                   >> moveBallPositionX
                   >> moveBallPositionY
+          newRacketPos = moveRacket model.racketPositionX model.keyPressed
           newModel = { model 
                      | ball = newBall
+                     , racketPositionX = newRacketPos
                      }
       in if model.status == Running 
          then (newModel, Cmd.none)
@@ -136,13 +155,11 @@ view model =
   , div [ Styles.score ] 
       [ text "Score: " 
       , span [] [text (toString model.score)]
-      , br [] []
-      , text (toString model) 
       ]
   , div [ Styles.playground ]
       [ info model 
       , div [ Styles.ball model.ball.x model.ball.y ] []
-      , div [ Styles.racket ] []
+      , div [ Styles.racket model.racketPositionX ] []
       ]
   ]
 

@@ -55,10 +55,10 @@ ball left top = style
   , ("border-radius", "15px")
   ]
 
-racket : Attribute msg
-racket = style
+racket : Int -> Attribute msg
+racket racketPosition = style
   [ ("background", "yellow")
-  , ("left", "110px")
+  , ("left", (toString racketPosition) ++ "px")
   , ("top", "360px")
   , ("position", "absolute")
   , ("width", "80px")
