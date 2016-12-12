@@ -25,11 +25,17 @@ type alias Ball =
   , directionY: Int
   }
 
+type alias Racket =
+  { positionX: Int
+  , positionY: Int
+  , width: Int
+  }
+
 type alias Model = 
   { status: Status
   , score: Int
   , ball: Ball
-  , racketPositionX: Int
+  , racket: Racket
   , keyPressed: Int
   }
 
@@ -42,12 +48,19 @@ initialBall =
   , directionY = -1
   }
 
+initialRacket : Racket
+initialRacket =
+  { positionX = 110
+  , positionY = 360
+  , width = 80
+  }
+
 initialModel : Model
 initialModel = 
   { status = Stopped
   , score = 0
   , ball = initialBall 
-  , racketPositionX = 110
+  , racket = initialRacket
   , keyPressed = -1
   }
 
@@ -94,13 +107,25 @@ moveBallPositionY ball =
   let positionY = ball.y + ball.speed * ball.directionY
   in { ball | y = positionY }
 
-moveRacket : Int -> Int -> Int
-moveRacket position keyPressed =
+moveRacket : Racket -> Int -> Racket
+moveRacket racket keyPressed =
   if keyPressed == keyLeft
-  then position - 5
+  then { racket | positionX = racket.positionX - 5 }
   else if keyPressed == keyRight
-  then position + 5
-  else position
+  then { racket | positionX = racket.positionX + 5 }
+  else racket
+
+isRacketHit : Ball -> Racket -> Bool
+isRacketHit ball racket =
+  ball.x >= racket.positionX
+  && ball.x <= (racket.positionX + racket.width)
+  && ball.y >= racket.positionY
+
+changeDirectionY : Ball -> Bool -> Ball
+changeDirectionY ball hit =
+  if hit
+  then { ball | directionY = -1 }
+  else ball
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
@@ -115,10 +140,16 @@ update msg model =
                   >> moveBallDirectionY
                   >> moveBallPositionX
                   >> moveBallPositionY
-          newRacketPos = moveRacket model.racketPositionX model.keyPressed
+          newRacket = moveRacket model.racket model.keyPressed
+          isHit = isRacketHit newBall newRacket
+          newScore = if isHit
+                     then model.score + 1
+                     else model.score
+          ball = changeDirectionY newBall isHit
           newModel = { model 
-                     | ball = newBall
-                     , racketPositionX = newRacketPos
+                     | ball = ball
+                     , racket = newRacket
+                     , score = newScore
                      }
       in if model.status == Running 
          then (newModel, Cmd.none)
@@ -159,7 +190,7 @@ view model =
   , div [ Styles.playground ]
       [ info model 
       , div [ Styles.ball model.ball.x model.ball.y ] []
-      , div [ Styles.racket model.racketPositionX ] []
+      , div [ Styles.racket model.racket.positionX model.racket.positionY model.racket.width ] []
       ]
   ]
 
