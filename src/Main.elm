@@ -26,9 +26,10 @@ type alias Ball =
   }
 
 type alias Racket =
-  { positionX: Int
-  , positionY: Int
+  { x: Int
+  , y: Int
   , width: Int
+  , height: Int
   }
 
 type alias Model = 
@@ -50,9 +51,10 @@ initialBall =
 
 initialRacket : Racket
 initialRacket =
-  { positionX = 110
-  , positionY = 360
+  { x = 110
+  , y = 360
   , width = 80
+  , height = 20
   }
 
 initialModel : Model
@@ -110,16 +112,16 @@ moveBallPositionY ball =
 moveRacket : Racket -> Int -> Racket
 moveRacket racket keyPressed =
   if keyPressed == keyLeft
-  then { racket | positionX = racket.positionX - 5 }
+  then { racket | x = racket.x - 5 }
   else if keyPressed == keyRight
-  then { racket | positionX = racket.positionX + 5 }
+  then { racket | x = racket.x + 5 }
   else racket
 
 isRacketHit : Ball -> Racket -> Bool
 isRacketHit ball racket =
-  ball.x >= racket.positionX
-  && ball.x <= (racket.positionX + racket.width)
-  && ball.y >= racket.positionY
+  ball.x >= racket.x
+  && ball.x <= (racket.x + racket.width)
+  && ball.y >= racket.y
 
 changeDirectionY : Ball -> Bool -> Ball
 changeDirectionY ball hit =
@@ -127,33 +129,42 @@ changeDirectionY ball hit =
   then { ball | directionY = -1 }
   else ball
 
+isGameOver : Ball -> Racket -> Bool
+isGameOver ball racket = (ball.y - racket.height) > racket.y
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of
     KeyPressed n ->
-      let newModel = { model | status = Running, keyPressed = n } 
-      in (newModel, Cmd.none)
-    KeyReleased _ -> ({ model | keyPressed = 1 }, Cmd.none)
+      let newModel = { model | keyPressed = n }
+          newModel2 = if newModel.status == Stopped
+                      then { newModel | status = Running }
+                      else newModel 
+      in (newModel2, Cmd.none)
+    KeyReleased _ -> ({ model | keyPressed = -1 }, Cmd.none)
     Tick time ->
-      let newBall = model.ball
-                  |> moveBallDirectionX
-                  >> moveBallDirectionY
-                  >> moveBallPositionX
-                  >> moveBallPositionY
-          newRacket = moveRacket model.racket model.keyPressed
-          isHit = isRacketHit newBall newRacket
-          newScore = if isHit
-                     then model.score + 1
-                     else model.score
-          ball = changeDirectionY newBall isHit
-          newModel = { model 
-                     | ball = ball
-                     , racket = newRacket
-                     , score = newScore
-                     }
-      in if model.status == Running 
-         then (newModel, Cmd.none)
-         else (model, Cmd.none) 
+      if model.status == Running 
+      then let newBall = model.ball
+                       |> moveBallDirectionX
+                       >> moveBallDirectionY
+                       >> moveBallPositionX
+                       >> moveBallPositionY
+               newRacket = moveRacket model.racket model.keyPressed
+               isHit = isRacketHit newBall newRacket
+               newScore = if isHit
+                          then model.score + 1
+                          else model.score
+               ball = changeDirectionY newBall isHit
+               newModel = { model 
+                          | ball = ball
+                          , racket = newRacket
+                          , score = newScore
+                          }
+               newModel2 = if isGameOver ball newRacket
+                           then { newModel | status = GameOver }
+                           else newModel
+      in (newModel2, Cmd.none)
+      else (model, Cmd.none) 
 
 beforeStart :  Html Msg
 beforeStart =
@@ -190,7 +201,11 @@ view model =
   , div [ Styles.playground ]
       [ info model 
       , div [ Styles.ball model.ball.x model.ball.y ] []
-      , div [ Styles.racket model.racket.positionX model.racket.positionY model.racket.width ] []
+      , div [ Styles.racket model.racket.x 
+                            model.racket.y 
+                            model.racket.width 
+                            model.racket.height
+            ] []
       ]
   ]
 

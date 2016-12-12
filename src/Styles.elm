@@ -55,12 +55,12 @@ ball left top = style
   , ("border-radius", "15px")
   ]
 
-racket : Int -> Int -> Int -> Attribute msg
-racket left top width = style
+racket : Int -> Int -> Int -> Int -> Attribute msg
+racket left top width height = style
   [ ("background", "yellow")
   , ("left", (toString left) ++ "px")
   , ("top", (toString top) ++ "px")
   , ("position", "absolute")
   , ("width", (toString width) ++ "px")
-  , ("height", "20px")
+  , ("height", (toString height) ++ "px")
   ]
