@@ -119,9 +119,9 @@ moveRacket racket keyPressed =
 
 isRacketHit : Ball -> Racket -> Bool
 isRacketHit ball racket =
-  ball.x >= racket.x
-  && ball.x <= (racket.x + racket.width)
-  && ball.y >= racket.y
+  ball.x >= (racket.x - 10)
+  && ball.x <= (racket.x + racket.width + 10)
+  && (ball.y + 5) >= (racket.y - 5)
 
 changeDirectionY : Ball -> Bool -> Ball
 changeDirectionY ball hit =
@@ -171,7 +171,7 @@ beforeStart =
   div [ Styles.messages ]
   [ text "press any key to start"
   , br [] []
-  , text "move left right" 
+  , text "move ← →" 
   ]
 
 gameOver : Html Msg

@@ -9068,7 +9068,11 @@ var _user$project$Styles$body = _elm_lang$html$Html_Attributes$style(
 		_1: {
 			ctor: '::',
 			_0: {ctor: '_Tuple2', _0: 'overflow-y', _1: 'hidden'},
-			_1: {ctor: '[]'}
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'padding', _1: '5px'},
+				_1: {ctor: '[]'}
+			}
 		}
 	});
 var _user$project$Main$gameOver = A2(
@@ -9112,7 +9116,7 @@ var _user$project$Main$beforeStart = A2(
 				{ctor: '[]'}),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$html$Html$text('move left right'),
+				_0: _elm_lang$html$Html$text('move ← →'),
 				_1: {ctor: '[]'}
 			}
 		}
@@ -9129,7 +9133,7 @@ var _user$project$Main$changeDirectionY = F2(
 	});
 var _user$project$Main$isRacketHit = F2(
 	function (ball, racket) {
-		return (_elm_lang$core$Native_Utils.cmp(ball.x, racket.x) > -1) && ((_elm_lang$core$Native_Utils.cmp(ball.x, racket.x + racket.width) < 1) && (_elm_lang$core$Native_Utils.cmp(ball.y, racket.y) > -1));
+		return (_elm_lang$core$Native_Utils.cmp(ball.x, racket.x - 10) > -1) && ((_elm_lang$core$Native_Utils.cmp(ball.x, (racket.x + racket.width) + 10) < 1) && (_elm_lang$core$Native_Utils.cmp(ball.y + 5, racket.y - 5) > -1));
 	});
 var _user$project$Main$moveBallPositionY = function (ball) {
 	var positionY = ball.y + (ball.speed * ball.directionY);
